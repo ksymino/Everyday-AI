@@ -1,0 +1,261 @@
+{
+  "name": "AI News",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -144,
+        16
+      ],
+      "id": "bb131271-31d9-43e7-911d-743448c61985",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://newsapi.org/v2/everything?q=ai&apiKey=",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        160,
+        160
+      ],
+      "id": "46a5df48-5d73-4be9-afe3-79d42399e93d",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "url": "https://gnews.io/api/v4/search?q=ai&lang=en&apikey=",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        160,
+        -112
+      ],
+      "id": "f480bae8-a24c-4411-a118-7a3f63b2dcea",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "title, url, content",
+        "joinMode": "keepEverything",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        672,
+        16
+      ],
+      "id": "b7baa2a2-b17e-4abc-aea5-e7c0110d4359",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=你是一名AI新闻编辑，负责筛选、翻译和整理最新的AI行业动态，并确保信息清晰、美观地呈现给读者。\n\n任务要求：\n\n1.从{{ $('Merge').all().toJsonString()}}中筛选15条仅与AI技术进展和应用相关的新闻，忽略无关信息。\n2.精准提炼为中文，并保留业界常见的英文术语（如 Neural Networks, Reinforcement Learning 等，不必强制翻译）。\n3.确保每条新闻附带原文链接，方便读者获取详细信息。\n4.开头提供当日日期，例如：“早上好，今天是2025年3月26日，以下是最新的AI行业新闻。”\n5.对输出内容进行排版美化，使用适当的换行、编号、粗体等格式，使信息更易阅读，例如：\n\n🚀 1. AI突破：新型 Transformer 架构提升文本理解能力\n🔗 [原文链接]{url}\n研究人员开发了一种改进版的 Transformer 结构，相比传统模型，在文本分类和摘要生成方面提升了20%的准确率……\n\n🚀 2. OpenAI 发布 GPT-5，参数量达 2 万亿\n🔗 [原文链接]{url}\n最新的 GPT-5 具备更强的推理能力，能够更自然地处理多轮对话，并支持实时检索……\n\n请确保最终输出内容清晰、美观，方便读者快速获取关键信息",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1104,
+        16
+      ],
+      "id": "51bd1a2e-d728-441f-9a6a-7eb55b293f6f",
+      "name": "AI Agent",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
+      "typeVersion": 1,
+      "position": [
+        976,
+        224
+      ],
+      "id": "202bb5bf-c86b-436f-8eda-bc93a27d207c",
+      "name": "DeepSeek Chat Model",
+      "credentials": {
+        "deepSeekApi": {
+          "id": "76T0NvgQHEVjuVs1",
+          "name": "DeepSeek account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nconst result = []\nfor (const item of $input.all()) {\n  for (const article of item.json.articles) {\n      result.push({\n      \"title\": article.title,\n      \"url\": article.url,\n      \"content\": article.content,\n    })\n  }\n}\n\nreturn result;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        368,
+        -112
+      ],
+      "id": "fd394100-8f5e-45e4-a502-3854cd19ad18",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nconst result = []\nfor (const item of $input.all()) {\n  for (const article of item.json.articles) {\n      result.push({\n      \"title\": article.title,\n      \"url\": article.url,\n      \"content\": article.content,\n    })\n  }\n}\n\nreturn result;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        368,
+        160
+      ],
+      "id": "31b4260e-dc64-4ab6-99a8-6ed055ad5ea3",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "sendTo": "jz3816@gsb.columbia.edu, zhanghaorui@stu.pku.edu.cn",
+        "subject": "每日AI新闻",
+        "emailType": "text",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1456,
+        16
+      ],
+      "id": "6b346f2d-5fba-45d5-a233-cfd8b17a615d",
+      "name": "Send a message",
+      "webhookId": "3c2e8056-a392-487f-ad3e-42ca7553655d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "MYysEbm3axoUHbFP",
+          "name": "Gmail account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeepSeek Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "6d8b648a-9e1a-4364-aaab-03362d7c9c56",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c9828f7ff697af7ddf52916a4a4c2826f7206f24487dab2cff9e759d1cacf58b"
+  },
+  "id": "fimrYCynOUZVFv9N",
+  "tags": []
+}
